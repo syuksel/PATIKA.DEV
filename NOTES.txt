@@ -1,0 +1,583 @@
+SQL NOTLARI
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+MSSqlde tabloları FROM ile belirtirken [] kullanılır,
+SQL BİLDİRİMSEL PROGRAMLAMA DİLİDİR VE 4. NESİL PROGRAMLAMA DİLİDİR:
+Postgresqlde query sonuna ; koyma zorunluluğu yoktur.
+WHERE karşılaştırmalarında kullanılan karşılaştırmalar --> <, >, <=, >=, =, <>, !=    (Son ikisi eşit değil.)
+WHERE NOT x=5;    ile wHERE x<>5 aynı
+OR'da filtreleme yeniden başlıyormuş gibi düşün		WHERE (condition1) AND (condition2) AND (condition3) OR (condition4) AND (condition5) için -->  (c1 && c2 && c3) || (c4 && c5)
+WHERE length BETWEEN 90 AND 120; dersek 90 ve 120 de dahil aralarındakileri arar.
+WHERE length NOT BETWEEN 90 AND 120; şeklinde de kullanılabilir
+WHERE length IN(40,50,60); IN içerisindekilere eşit olanlar gelir. 
+WHERE length NOT IN(40,50,60); şeklinde de kullanılabilir
+WHERE first_name ILIKE 'a%' dersek CASE_SENSITIVE ortadan kalkmış olur ve A ile başlayanlar ve a ile başlayanlar gelir.
+WHERE first_name NOT LIKE 'A%' şeklinde NOT LIKE kullanılabilir.
+WHERE first_name LIKE 'J_an' dersek, 4 harfli kuralı sağlayan filtrelemeyi yapar. _ sadece 1 karakter kabul edilir. % 0 veya daha afzla.
+POSTGRE SQL de LIKE YERİNE ~~ de kullanılır. ILIKE yerine de ~~* kullanılabilir. NOT ILIKE !~~*
+FARKLI İFADELERİ GÖRMEK İÇİN DISTINCT kelimesi kullanılır.		SELECT DISTINCT rental_rate FROM film
+DISTINCT'i 2 farklı kolon için kullanırsak kombinasyonu uniq olanları listeler. Ör SEELCT DISTINCT city, county from Customer'da şehri ve ülkesi beraber farklı olanların hepsi listelenir.
+SALES_EMP'si farklı kaç tane kayıt var sorgusu
+	SELECT COUNT(DISTINCT SALES_EMP_ID)  
+	FROM [WORKCUBE_KENTGUVENLIK].[workcube_kentguvenlik_1].[OPPORTUNITIES]
+Birbirinden farklı uzunlukta kaç film var? 		--> SEELCT COUNT(DISTINCT length) FROM film
+psql komutları yazabileceğimiz terminae bağlanıp sql komutlarını yazabiliriz. ; koyana kadar yazım devam eder.
+ORDER BY keywordü Where den sonra gelir.
+OFFSET ve LIMIT --> LIMIT 20 20 veriyi göster, OFFSET 7 ilk 7 veriyi atla
+SIRALAMA WHERE, ORDER BY, OFFSET, LIMIT
+Bir sütundaki en yüksek değeri görmek için MAX fonksiyonu kullanılır. --> SELECT MAX(replacement_cost) FROM film
+Minimum değeri bulmak için --> SELECT MIN(replacement_cost) FROM film
+Filt uzunluklarının avarajını almak için --> SELECT ROUND(AVG(length), 3) FROM film		ROUND ,den sonrayı yuvarlıyor
+Tüm verileri toplamak için --> SELECT SUM(length) FROM film
+AGGREGATE FUNCTIONS --> COUNT, MIN, MAX, AVG, SUM
+	Bu fonksiyonlarda tabloda hesaplamalar yapıp bize tek değer dönüyor. O yüzden bu fonksiyonların yanına bir de sütun ismi koyamayız aşağıdaki gibi.
+	SELECT MAX(length) , rental_rate FROM film;		(GROUP BY HATASI VERİYOR!!!!!)
+GROUP BY kelimesi bazı verileri gruplamak için kullanılır. Örneğin çalışanların bazıları aynı şehirde ise, şehirlerde kaç kişi yaşadığını listeleyebiliriz.
+SELECT in yanında görmek istediğimiz kolon ismi GROUP BY içerisinde olmak zorunda.
+Ratinglere göre düşen film sayıları
+	SELECT rating, COUNT(*) FROM film
+	ORDER BY rating
+Replacement costa göre en kısa filmlerin gruplanması
+	SELECT replacemen_cost, MIN(length) from film
+	ORDER BY replacemen_cost
+Her bir SALES_EMP_ID değerinden kaç tane opportunuties kaydı var?
+	SELECT SALES_EMP_ID, COUNT(*)
+	FROM [WORKCUBE_KENTGUVENLIK].[workcube_kentguvenlik_1].[OPPORTUNITIES]
+	GROUP BY SALES_EMP_ID
+HAVING --> Gruplanan verilere koşul eklenmesi için kullanılır.
+Çalışanların satışlarını idlerine göre grupla ve ona 7300 den fazla satış yapmışları listele
+	SELECT staff_id, COUNT(*) FROM payment
+	GROUP BY staff_id
+	HAVING COUNT(*) > 7300
+SATIR BAZLI KOŞUL KOYDUĞUMUZDA WHERE, GROUP BAZLI KOŞUL KOYDUĞUMUZDA HAVING ANAHTAR KELİMESİNİ KULLAN.
+AS anahtar kelimesi bir listelemeye isim verirken kullanılşır. AS yazılmasa da ALLIAS yapılmış olur.
+AS den sonra verilen isim 2 kelime ya da daha fazla ise "" içerisinde olmalı. --> SELECT first_name AS "isim test", last_name AS "soyisim test" FROM actor;
+2 sütunu birleştirmek için CONCAT fonksiyonu kullanılır. --> SEELCT CONCAT(first_name, ' ', last_name) AS "İsim ve Soyisim" FROM actor;
+Tablo oluşturmak için aşağıdaki komut kullanılabilir
+	CREATE TABLE author(
+		id SERIAL PRIMARY KEY,
+		first_name VARCHAR(50) NOT NULL,
+		last_name VARCHAR(50) NOT NULL,
+		email VARCHAR(100),
+		birthday DATE	
+	)
+Oluşturulmuş tabloya satır eklemek için aşağıdaki gibi INSERT INTO kullanılabilir.
+	INSERT INTO author (first_name, last_name, email, birthday)
+	VALUES
+		('Haruki', 'Murakami', 'haruki@murakami.com', '1987-11-07')
+		('Sabahattin', 'Ali', 'sabahattin@ali.com', '1914-12-26');
+Tabloyu silmek için DELETE kullanılır.
+Tablodaki bir veriyi güncellemek için UPDATE kullanılır.
+	UPDATE author
+		SET first_name = 'Emrah',
+			last_name = 'Gürkan',
+			email = 'emrah@gurkan.com',
+			birthday = '1980-01-01'
+		WHERE id = 10
+Burada Where kullanmazsak bütün satırları değiştirir.
+Bir satırı silmek için DELETE kullanılır.
+	DELETE FROM author WHERE id > 11 RETURNING * (Returning işlem yapılan satırları geri döndürür.)
+PRIMARY KEY = birincil anahtar, asıl amacı o satırdaki veriyi diğer satırlardan ayrıştırmaktır. Primary Key uniq bir identifierdır.
+FOREIGN KEY = Başka bir tablonun PRIMARY KEY ine referans vermemizi sağlar, illa PRIMARY KEY olmak zorunda değil. Ama yüksek ihtimal PRIMARY KEY
+Book diye bir tablo oluşturup yazarına PRIMARY KEY ile referans vermek için aşağıdaki gibi yazarız. REFERENCES keywordü bunu sağlar.
+	CREATE TABLE book(
+		id SERIAL PRIMARY KEY,
+		title VARCHAR(100) NOT NULL,
+		page_number INTEGER NOT NULL,
+		author_id INTEGER REFERENCES author(id)
+	);
+Bağlı iki tablodaki bütün verileri görmek için aşağıdaki JOIN komutu koşulur.
+	SEELCT * FROM book 
+	JOIN author ON author.id = book.author_id
+Postgre Sql Data Types yazınca çıkan dökümandan oluşturulacak Tablolardaki değerler için seçim yapılabilir. 21 farklı veri grubu var bu dökümanda.
+Bu veri tiplerinden NUMERICS, CHARACTER, BOOLEAN ve DATE grupları önemli.
+numeric veri tipi ,den sonra en fazla hassasiyeti sağlayan veri tipidir.
+CHAR ve VARCHAR arasındaki fark şöyle, Char için ayrılan yer kaçsa kalanını boşluk dolduruyor, VarChar için alan kalırsa boşluk olmaz.
+TEXT de kısıtlama yok, CHAR ve VHARCHAR da kısıtlama var.
+Postgresql de Date yyyy-mm-dd olarak belirtiliyor.
+Date dışında extradan TIME veri yapısı da var. Saati UTC ye göre gösteren tipi var.
+Hem Date hem Time beraber kullanmak istersek TimeStamp var.
+Eğer bir tablo oluşturduğumuzda name sütununu NOT NULL yapmamışsak ve sonradan o sütunu NOT NULL yapmak istiyorsak ALTER kullanıcaz.
+Ancak o tabloda hali hazırda name kolonunda null değerler varsa ALTER hata verir.
+name lerin null olduğu satırları silmek lazım ya da nullara set eklemek lazım. 
+	DELETE FROM users
+	WHERE username IS NULL
+	RETURNING *;
+Artık tabloda username i null olan bir değer kalmadı ve ALTER çalıştırılabilir.
+	ALTER TABLE users
+	ALTER COLUMN username
+	SET NOT NULL;
+Herhangi bir String alan bomboş gözüküyorsa tabloda orası NULL değildir. Null ile boş string farklıdır.	
+Eğer email adreslerinin tekrar etmemesini istiyorsak o alanı UNIQUE yapabiliriz ALTER ile. Bu değişiklik yapılırken aynı mail adresine sahip olanlar varsa değiştirilmesini isteyecek.
+	ALTER TABLE users
+	ADD UNIQUE(email);
+Yaş negatif olamayacağı için o alana CHECK kısıtlaması getirilebilir.
+	ALTER TABLE users
+	ADD CHECK (age > 18);
+Yeni tablo oluştururken CHECK koşulunu aşağıdaki gibi kullanırız. Fiyat 0 dan büyük olmak zorunda.
+	CREATE TABLE products(
+		product_no INTEGER,
+		name TEXT,
+		price NUMERIC CHECK (price > 0)
+	);
+Tablo içerisinde 2 fatklı sütunda da CHECK kullanılabilir. Mesela ürünün fiyatı indirimli fiyatından daha yüksek olmak zorundadır.
+	CREATE TABLE products(
+		product_no INTEGER,
+		name TEXT,
+		price NUMERIC CHECK (price > 0),
+		discounted_price numeric CHECK (discounted_price > 0)
+		CHECK (price > discounted_price)
+	);
+INNER JOIN iki tabloyu birleştirmeye yarar.
+	SELECT title, first_name, last_name FROM book
+	INNER JOIN author ON book.author_id = author.id;
+INNER JOIN yerine sadece JOIN yazılırsa da default INNER JOIN gibi çalışır.
+LEFT JOIN FROM dan sonra yazılan ilk tablodaki verilerin tamamını getirir ve ikinci tablo ile olan kesişimlerini getirir.
+Örneğin yazarlar ve kitaplar tablosu olsun. Left JOIN ile yazarların listelendiğini varsayarsak hiç kitabı olmayan yazarlar da listelenecek ve karşılarında default NULL olacak.
+Left Join kullanıldığı zaman tablo 1 deki verilerin tamamı alınır ve tablo 2 ile eşleştirilmeye çalışılır.
+	SELECT first_name, last_name, title FROM author
+	LEFT JOIN book ON author.id = book.author_id
+Bu sorguda yazarın 1den fazla kitabı varsa bütün kitapları gelicek. İlla leftteki kayıt kadar gelicek diye bir şey yok.
+Aynı sorguda tabloların yeri değişirse bu sefer bütün kitaplar gelicek. Kitabı olmayan yazarlar gelmeyecek.
+	SELECT first_name, last_name, title FROM book
+	LEFT JOIN author ON author.id = book.author_id
+Foreign Key kısıtlamasından kurtulmak için aşağıdaki komut yazılır.
+	ALTER TABLE book
+	DROP CONSTRAIN book_author_id_fkey;
+Bu kısıtlama kaldırıldıktan sonra bir kitabın yazarı yazar tablosunda yoksa bu sefer oralara NULL yazıcak.
+RIGHT JOIN kullanırsak ve tablo isimlerinin yerini değiştirirsek aynı çıktıyı alırız.
+FULL JOIN de her iki tablodaki bütün değerler alınır ve sağlı sollu eşleşmeyen değerler için null değerleri kounulur.
+Eşleşmeyen değerlere null konulduğu zaman author.id = book.author_id ifadesini sağlamayan değerler gelebilir. Where'deki bu koşul sadece eşleşen değerleri bulmak için kullanılıyor.
+FULL JOIN ile INNER JOIN yapmak için aşağıdaki gibi id ler check edilebilir.
+	SELECT * FROM author
+	FULL OUTET JOIN book ON outher.id = book.author_id
+	WHERE (book.id IS NOT NULL AND author.id IS NOT NULL);
+FULL JOIN de n kesişimlerin çıkmış halinin sorgusu aşağıdaki gibidir. (A-B U B-A)
+	SELECT * FROM author
+	FULL OUTHER JOIN book ON author.id = book.author_id
+	WHERE (book.id IS NULL OR author.id IS NULL);
+UNION keywordü iki farklı sorguyu birleştirmeye yarar. Birleştirdiği zaman kesişimler 1 kez yazılır.
+	(
+		SELECT * FROM book
+		ORDER BY page_number DESC
+		LIMIT 5
+	)
+	UNION
+	(
+		SELECT * FROM book
+		ORDER BY title
+		LIMIT 5
+	);
+Burada toplamda 10 kayıt geliyor ama 1 kayıt ortak olduğu için 9 kayıt döndü.
+UNION ALL dersek bu sefer aynı kayıtlar yine gelir ve toplamda 10 kayıt döner.
+UNION ile birleştirme yapılırken 2 ayrı SELECT'de aynı sayıda sütun seçilmiş olmalı yoksa hata verir.
+UNION ile birleştirme yaparken aynı zamanda da SELECT edilen tipler de aynı olmak zorunda. int ile CHAR birleştirilemez.
+INTERSECT kullanıldığı zaman da iki ayrı sorgudan dönen ortak satırları döndürür.
+	(
+		SELECT * FROM book
+		ORDER BY page_number DESC
+		LIMIT 5
+	)
+	INTERSECT
+	(
+		SELECT * FROM book
+		ORDER BY title
+		LIMIT 5
+	);
+Burada iki sorgudan 1 tane ortak satır olduğu için üstteki UNION örneğinde 9 değer dönmüştü. Burada da ortak olan 1 değer dönüyor.
+EXCEPT kullanıldığı zaman da ilk sorguda olan ancak ikinci sorguda olmayan satırlar döner.
+	(
+		SELECT * FROM book
+		ORDER BY page_number DESC
+		LIMIT 5
+	)
+	EXCEPT
+	(
+		SELECT * FROM book
+		ORDER BY title
+		LIMIT 5
+	);
+Bu sorgu çalıştırıldığı zaman ortak 1 eleman olduğu için ilk sorguda olan ikinci sorguda olmayanlar döneceği için 4 satır döner.
+INTERSECT ve UNION'da da aynı sayıda ve tipde sütunlar seçilmiş olmak zorunda.
+Alt sorgu için WHERE koşulunun parametresine yeni sorgu yazılabilir.
+	SELECT * FROM book
+	WHERE page_number > 
+	(
+		SELECT page_number FROM book
+		WHERE title = 'Gülün Adı'
+	);
+Burada sayfa sayısı Gülün Adı isimli kitabın sayfa sayısından daha büyük olan kitaplar listelenicek.
+ANY ve ALL alt sorgularla sık sık kullanılır.
+Aşağıda hata verecek bir alt query li sorgu var.
+	SELECT first_name, last_name
+	FROM author
+	WHERE id =
+	(
+		SELECT id
+		FROM book
+		WHERE title = 'Abe Lincoln in Illinois' OR title = 'Saving Shiloh'
+	);
+Burada id 2 farklı değer olamayacağı için burada herhangi biri gelse de olur diyebilmek için ANY dememiz lazım. Doğrusu aşağıdaki gibi.
+	SELECT first_name, last_name
+	FROM author
+	WHERE id = ANY
+	(
+		SELECT id
+		FROM book
+		WHERE title = 'Abe Lincoln in Illinois' OR title = 'Saving Shiloh'
+	);
+ALL keywordünü de select sorgusundan dönen bütün değerleri check etmek için kullanılır.
+Kitap sayfa sayısı ortalama kitap sayfası sayısından fazla olan kitap isimlerini, yazar isim ve soyisimleri ile birlikte sıralayınız.
+	SELECT Y.name, Y.surname, K.name
+	FROM kitap K
+	INNER JOIN yazar Y ON K.yazar_id = Y.id 
+	WHERE K.sayfa_sayisi >
+	(
+		SELECT AVG(sayfa_sayisi)
+		FROM kitap
+	);
+Film uzunluğu en fazla olan filmlerin isimlerini, uzunluğunu, actor isim ve soyisimleri ile birlikte yazdırın.
+	SELECT actor.first_name, actor.last_name, film.title, film.length
+	FROM actor
+	JOIN film_actor ON film_actor.actor_id = actor.actor_id
+	JOIN film ON film.film_id = film_actor.film_id
+	WHERE F.length =
+	(
+		SELECT MAX(length)
+		FROM film
+	);
+Given the CITY and COUNTRY tables, query the names of all the continents (COUNTRY.Continent) and their respective average city populations (CITY.Population) rounded down to the nearest integer.
+	SELECT COUNTRY.CONTINENT, FLOOR(AVG(CITY.POPULATION))
+	FROM CITY INNER JOIN COUNTRY
+	ON CITY.COUNTRYCODE = COUNTRY.CODE
+	GROUP BY COUNTRY.CONTINENT;
+İsminde en az 4 tane e veya E bulunan kaç tane film vardır?
+	SELECT COUNT(*)
+	FROM film
+	WHERE title ILIKE '%e%e%e%e%'
+Kategori isimlerini ve kategori başına düşen film sayısını yazınız? (film-category-film_category) (3ü ayrı tablo)
+	SELECT COUNT(*), category.name
+	FROM CATEGORY C
+	JOIN film_category ON film_category.category_id = category.caregory_id
+	JOIN film ON film.film_id = film_category.film_id
+	GROUP BY category.name;
+En çok film bulunan rating kategorisi hangisidir?
+	SEELCT rating 
+	FROM film
+	GROUP BY rating
+	ORDER BY COUNT(*) DESC
+	LIMIT 1;
+Film tablosunda 'K' karakteri ile başlayan en uzun ve replacement_cost en az olan 3 filmi sıralayınız?
+	SELECT title, length, replacement_cost
+	FROM film
+	WHERE name LIKE 'K%'
+	ORDER BY length DESC, replacement_cost ASC
+	LIMIT 3;
+En çok alışveriş yapan müşterinin adı nedir? (payment ve customer tablosu)
+	SELECT SUM(amount), customer.first_name, customer.last_name
+	FROM payment
+	JOIN customer ON customer.customer_id = payment.customer_id
+	GROUP BY payment.customer_id, customer.first_name, customer.last_name
+	ORDER BY SUM(amount) DESC
+	LIMIT 1;
+
+
+
+
+
+
+
+1) film tablosunda bulunan title ve description sütunlarındaki verileri sıralayınız.
+SELECT title, description FROM film
+
+2) film tablosunda bulunan tüm sütunlardaki verileri film uzunluğu (length) 60 dan büyük VE 75 ten küçük olma koşullarıyla sıralayınız.
+SELECT * FROM film
+WHERE length > 60 AND length <75
+
+3) film tablosunda bulunan tüm sütunlardaki verileri rental_rate 0.99 VE replacement_cost 12.99 VEYA 28.99 olma koşullarıyla sıralayınız.
+SELECT * FROM film
+WHERE rental_rate = 0.99 AND (replacement_cost = 12.99 OR replacement_cost=28.99)
+
+4) customer tablosunda bulunan first_name sütunundaki değeri 'Mary' olan müşterinin last_name sütunundaki değeri nedir?
+SELECT lastname FROM customer
+WHERE first_name = 'Mary'
+
+5) film tablosundaki uzunluğu(length) 50 ten büyük OLMAYIP aynı zamanda rental_rate değeri 2.99 veya 4.99 OLMAYAN verileri sıralayınız.
+
+SELECT * FROM film
+WHERE length <=50 
+
+6) film tablosunda bulunan tüm sütunlardaki verileri replacement cost değeri 12.99 dan büyük eşit ve 16.99 küçük olma koşuluyla sıralayınız ( BETWEEN - AND yapısını kullanınız.)
+SELECT * FROM film
+WHERE replacement_cost BETWEEN 12.99 AND 16.66 AND replacement_cost <> 16.99
+
+7) .actor tablosunda bulunan first_name ve last_name sütunlardaki verileri first_name 'Penelope' veya 'Nick' veya 'Ed' değerleri olması koşuluyla sıralayınız. ( IN operatörünü kullanınız.)
+SELECT first_name, last_name FROM actor
+WHERE first_name IN ('Penelope', 'Nick', 'Ed')
+
+8) film tablosunda bulunan tüm sütunlardaki verileri rental_rate 0.99, 2.99, 4.99 VE replacement_cost 12.99, 15.99, 28.99 olma koşullarıyla sıralayınız. ( IN operatörünü kullanınız.)
+SELECT * FROM film
+WHERE rental_rate IN (0.99, 2.99, 4.99) AND replacement_cost IN (12.99, 15.99, 28.99)
+
+9) country tablosunda bulunan country sütunundaki ülke isimlerinden 'A' karakteri ile başlayıp 'a' karakteri ile sonlananları sıralayınız.
+SELECT * FROM country
+WHERE country LIKE 'A%a'
+
+10) country tablosunda bulunan country sütunundaki ülke isimlerinden en az 6 karakterden oluşan ve sonu 'n' karakteri ile sonlananları sıralayınız.
+SELECT * FROM country
+WHERE country LIKE '_____%n'
+
+11) film tablosunda bulunan title sütunundaki film isimlerinden en az 4 adet büyük ya da küçük harf farketmesizin 'T' karakteri içeren film isimlerini sıralayınız.
+SELECT * FROM film
+WHERE title ILIKE '%t%t%t%t%' 
+
+12) film tablosunda bulunan tüm sütunlardaki verilerden title 'C' karakteri ile başlayan ve uzunluğu (length) 90 dan büyük olan ve rental_rate 2.99 olan verileri sıralayınız.
+SELECT * FROM film
+WHERE title LIKE 'C%' AND length > 90 AND rental_rate = 2.99
+
+13) film tablosunda bulunan replacement_cost sütununda bulunan birbirinden farklı değerleri sıralayınız.
+SELECT DISTINCT replacement_cost FROM film
+
+14) film tablosunda bulunan replacement_cost sütununda birbirinden farklı kaç tane veri vardır?
+SELECT COUNT(DISTINCT replacement_cost) FROM film
+
+15) film tablosunda bulunan film isimlerinde (title) kaç tanesini T karakteri ile başlar ve aynı zamanda rating 'G' ye eşittir?
+SELECT COUNT(*) FROM film
+WHERE title LIKE 'T%' AND rating = 'G'
+
+16) country tablosunda bulunan ülke isimlerinden (country) kaç tanesi 5 karakterden oluşmaktadır?
+SELECT COUNT(*) FROM Country
+Where country LIKE '_____'
+
+17) city tablosundaki şehir isimlerinin kaç tanesi 'R' veya r karakteri ile biter?
+SELECT COUNT(*) FROM city
+WHERE city ILIKE '%r'
+
+18) film tablosunda bulunan ve film ismi (title) 'n' karakteri ile biten en uzun (length) 5 filmi sıralayınız.
+SELECT * FROM film
+WHERE title LIKE '%n'
+ORDER BY length DESC
+OFFSET 5
+
+19) film tablosunda bulunan ve film ismi (title) 'n' karakteri ile biten en kısa (length) ikinci(6,7,8,9,10) 5 filmi(6,7,8,9,10) sıralayınız.
+SELECT * FROM film
+WHERE title LIKE '%n'
+ORDER BY ASC
+OFFSET 5
+
+20) customer tablosunda bulunan last_name sütununa göre azalan yapılan sıralamada store_id 1 olmak koşuluyla ilk 4 veriyi sıralayınız.
+SELECT last_name FROM customer
+WHERE store_id = 1
+ORDER BY last_name DESC
+LIMIT 4
+
+21) film tablosunda bulunan rental_rate sütunundaki değerlerin ortalaması nedir?
+SELECT AVG(rental_rate) FROM film
+
+22) film tablosunda bulunan filmlerden kaç tanesi 'C' karakteri ile başlar?
+SELECT COUNT(*) FROM film 
+WHERE name LIKE 'C%'
+
+23) film tablosunda bulunan filmlerden rental_rate değeri 0.99 a eşit olan en uzun (length) film kaç dakikadır?
+SELECT MAX(length) FROM film
+WHERE rental_rate = 0.99
+
+24) film tablosunda bulunan filmlerin uzunluğu 150 dakikadan büyük olanlarına ait kaç farklı replacement_cost değeri vardır?
+SELECT COUNT(DISTINCT replacement_cost) FROM film
+WHERE length > 150
+
+25) film tablosunda bulunan filmleri rating değerlerine göre gruplayınız.
+SELECT rating, FROM film
+GROUP BY rating
+
+26) film tablosunda bulunan filmleri replacement_cost sütununa göre grupladığımızda film sayısı 50 den fazla olan replacement_cost değerini ve karşılık gelen film sayısını sıralayınız.
+SELECT replacement_cost, COUNT(*) FROM film
+GROUP BY replacement_cost
+HAVING COUNT(*) > 50
+
+27) customer tablosunda bulunan store_id değerlerine karşılık gelen müşteri sayılarını nelerdir?
+SELECT store_id, COUNT(*) FROM customer
+GROUP BY store_id
+
+28) city tablosunda bulunan şehir verilerini country_id sütununa göre gruplandırdıktan sonra en fazla şehir sayısı barındıran country_id bilgisini ve şehir sayısını paylaşınız.
+SELECT country_id, COUNT(*)	FROM city
+GROUP BY country_id
+ORDER BY COUNT(*) DESC
+LIMIT 1
+
+29) test veritabanınızda employee isimli sütun bilgileri id(INTEGER), name VARCHAR(50), birthday DATE, email VARCHAR(100) olan bir tablo oluşturalım.
+CREATE TABLE employee(
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(50) NOT NULL,
+	birthday DATE,
+	email VARCHAR(100)
+
+)
+
+30) Oluşturduğumuz employee tablosuna 'Mockaroo' servisini kullanarak 50 adet veri ekleyelim.
+INSERT INTO employee(name, birthday, email)
+VALUES('Samet', '1991-04-15', 'samet.yuksel.50@gmail.com');
+
+
+31) Sütunların her birine göre diğer sütunları güncelleyecek 5 adet UPDATE işlemi yapalım.
+UPDATE employee
+	SET name = 'Abdulsamet'
+WHERE id = 1
+
+32) Sütunların her birine göre ilgili satırı silecek 5 adet DELETE işlemi yapalım.
+DELETE FROM employee
+WHERE id = 1
+
+33) city tablosu ile country tablosunda bulunan şehir (city) ve ülke (country) isimlerini birlikte görebileceğimiz INNER JOIN sorgusunu yazınız.
+SELECT CI.name, CO.name
+FROM CITY CI
+INNER JOIN COUNTRY CO
+ON CI.country_id = CO.id
+
+34) customer tablosu ile payment tablosunda bulunan payment_id ile customer tablosundaki first_name ve last_name isimlerini birlikte görebileceğimiz INNER JOIN sorgusunu yazınız.
+SELECT C.payment_id, P.payment_id, C.first_name, C.last_name
+FROM CUSTOMER C
+INNER JOIN PAYMENT P
+ON C.id = P.customer_id
+
+35) customer tablosu ile rental tablosunda bulunan rental_id ile customer tablosundaki first_name ve last_name isimlerini birlikte görebileceğimiz INNER JOIN sorgusunu yazınız.
+SELECT R.id, C.first_name, C.last_name
+FROM CUSTOMER C
+INNER JOIN RENTAL R
+ON C.rental_id = R.id
+
+36) city tablosu ile country tablosunda bulunan şehir (city) ve ülke (country) isimlerini birlikte görebileceğimiz LEFT JOIN sorgusunu yazınız.
+SELECT  CI.name, CO.name
+FROM CITY CI
+LEFT JOIN COUNTRY CO
+ON CI.country_id = CO.id
+
+37) customer tablosu ile payment tablosunda bulunan payment_id ile customer tablosundaki first_name ve last_name isimlerini birlikte görebileceğimiz RIGHT JOIN sorgusunu yazınız.
+SELECT P.id, C.first_name, P.last_name
+FROM COSTUMER C
+RIGHT JOIN PAYMENT P
+ON C.payment_id = P.id
+
+38) customer tablosu ile rental tablosunda bulunan rental_id ile customer tablosundaki first_name ve last_name isimlerini birlikte görebileceğimiz FULL JOIN sorgusunu yazınız.
+SELECT R.id, C.first_name, C.last_name
+FROM CUSTOMER C
+FULL JOIN RENTAL R
+ON C.rental_id = R.id
+
+39) actor ve customer tablolarında bulunan first_name sütunları için tüm verileri sıralayalım.
+(
+	SELECT first_name
+	FROM actor
+)
+UNION
+(
+	SELECT first_name
+	FROM customer
+)
+
+40) actor ve customer tablolarında bulunan first_name sütunları için kesişen verileri sıralayalım.
+(
+	SELECT first_name
+	FROM actor
+)
+INTERSECT
+(
+	SELECT first_name
+	FROM customer
+)
+
+41) actor ve customer tablolarında bulunan first_name sütunları için ilk tabloda bulunan ancak ikinci tabloda bulunmayan verileri sıralayalım.
+(
+	SELECT first_name
+	FROM actor
+)
+EXCEPT
+(
+	SELECT first_name
+	FROM customer
+)
+
+42) İlk 3 sorguyu tekrar eden veriler için de yapalım.
+(
+	SELECT first_name
+	FROM actor
+)
+UNION ALL
+(
+	SELECT first_name
+	FROM customer
+)
+
+(
+	SELECT first_name
+	FROM actor
+)
+INTERSECT ALL
+(
+	SELECT first_name
+	FROM customer
+)
+
+(
+	SELECT first_name
+	FROM actor
+)
+EXCEPT ALL
+(
+	SELECT first_name
+	FROM customer
+)
+
+43) film tablosunda film uzunluğu length sütununda gösterilmektedir. Uzunluğu ortalama film uzunluğundan fazla kaç tane film vardır?
+SELECT COUNT(*)
+FROM film
+WHERE length >
+(
+	SELECT AVG(length)
+	FROM film
+);
+
+44) film tablosunda en yüksek rental_rate değerine sahip kaç tane film vardır?
+SELECT COUNT(*)
+FROM film
+WHERE rental_rate =
+(
+	SELECT MAX(rental_rate)
+	FROM film
+);
+
+45) film tablosunda en düşük rental_rate ve en düşük replacement_cost değerlerine sahip filmleri sıralayınız.
+SELECT
+FROM film
+WHERE id = ANY
+{
+	SELECT id 
+	FROM film
+	WHERE rental_rate = ALL
+	(
+		SELECT MIN(rental_rate)
+		FROM film	
+	)
+	UNION
+	SELECT id 
+	FROM film
+	WHERE rental_rate = ALL
+	(
+		SELECT MIN(replacement_cost)
+		FROM film	
+	)
+}
+
+46) payment tablosunda en fazla sayıda alışveriş yapan müşterileri(customer) sıralayınız.
+SELECT *
+FROM customer
+WWHERE id = ALL
+(
+	SELECT customer_id
+	FROM payment
+	WHERE shopping_number = ALL
+	(
+		SELECT MAX(shopping_number)
+		FROM payment
+	)
+)
+
